@@ -1,0 +1,88 @@
+{
+  "schema": "tvcast.demo.asset/1",
+  "id": "outage-long",
+  "label": "超时断流 · 不可恢复区间",
+  "description": "2.5s 起连续丢 120 个包（约 1.3s 断流，远超 250ms 重排超时），接收端必须判出不可恢复区间而非无限等待；之后流继续并恢复解码。",
+  "program": {
+    "id": "campus-tts",
+    "number": 3,
+    "label": "图文频道 (Info Ticker)",
+    "style": 2,
+    "fps": 25,
+    "duration_s": 10.0,
+    "video_bps": 600000,
+    "audio_bps": 48000,
+    "muxrate": 800000,
+    "service_id": 1003,
+    "transport_stream_id": 103
+  },
+  "content": {
+    "file": "demos/programs/campus-tts/content.ts",
+    "sha256": "be374bbbc1ef691053013b96e407281c0e8a5a692148f2dad905d6cb05a9ce78",
+    "frame_count": 250,
+    "duration_ms": 10000,
+    "content_manifest": "demos/programs/campus-tts/content.json"
+  },
+  "wire": {
+    "file": "outage-long.wire",
+    "sha256": "fda55706c9788269d05a7f869113f40c1d2d183308692e8b53631ccabba62a19",
+    "bytes": 860238,
+    "packet_records": 641,
+    "rtp_payload_bytes": 843556,
+    "start_seq": 65200,
+    "end_seq": 424,
+    "ssrc": 3405643779,
+    "muxrate_bps": 800000,
+    "duration_ms": 10001.6,
+    "ts_trailing_bytes": 0
+  },
+  "packets_csv": "outage-long.packets.csv",
+  "packet_identity": {
+    "seq16": "16-bit RTP sequence carried on the wire",
+    "ext_seq": "64-bit extended sequence (start_seq + index)",
+    "rtp_ts": "RTP timestamp in 90 kHz units",
+    "packet_index": "original packetization index, stable under faults",
+    "frame": "video frame number rendered into the picture",
+    "program": "program number encoded in the frame barcode"
+  },
+  "fault_plan": [
+    {
+      "action": "drop",
+      "at_ms": 2500,
+      "count": 120,
+      "reason": "outage-120"
+    }
+  ],
+  "fault_events": [
+    {
+      "action": "drop",
+      "reason": "outage-120",
+      "at_ms": 2500.4,
+      "packet_index": 190,
+      "packet_index_end": 309,
+      "seq16": 65390,
+      "seq16_end": 65509,
+      "ext_seq": 65390,
+      "count": 120,
+      "frame": 62,
+      "frame_end": 100
+    }
+  ],
+  "summary": {
+    "dropped_packets": 120,
+    "duplicate_copies": 0,
+    "delayed_packets": 0,
+    "wire_packets": 641,
+    "original_packets": 761
+  },
+  "expected": {
+    "loss_runs": 1,
+    "cc_errors": 4
+  },
+  "receiver_contract": {
+    "reorder_timeout_ms": 250,
+    "max_reorder_packets": 256,
+    "reorder_delay_ms": 150,
+    "duplicate_delay_ms": 90
+  }
+}

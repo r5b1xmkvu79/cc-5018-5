@@ -1,0 +1,112 @@
+{
+  "schema": "tvcast.demo.asset/1",
+  "id": "dup-reorder",
+  "label": "重复 + 乱序突发 · 重排恢复",
+  "description": "3.0s 起 10 个包各晚到 90ms 造成重复；4.2s 起 12 个包被扣留 150ms 越过后继包，在重排超时内补齐。",
+  "program": {
+    "id": "campus-life",
+    "number": 2,
+    "label": "园区生活 (Campus Life)",
+    "style": 1,
+    "fps": 25,
+    "duration_s": 10.0,
+    "video_bps": 700000,
+    "audio_bps": 64000,
+    "muxrate": 900000,
+    "service_id": 1002,
+    "transport_stream_id": 102
+  },
+  "content": {
+    "file": "demos/programs/campus-life/content.ts",
+    "sha256": "3e547a7a47e85010804a2f1962881ddde2f0a2cd2a7d0ae552074571494c18e7",
+    "frame_count": 250,
+    "duration_ms": 10000,
+    "content_manifest": "demos/programs/campus-life/content.json"
+  },
+  "wire": {
+    "file": "dup-reorder.wire",
+    "sha256": "a9dff3f0a339c4984c809a32f81820919c5ac91f4a445fb61ae69a8b33a4abf7",
+    "bytes": 1160658,
+    "packet_records": 865,
+    "rtp_payload_bytes": 1138152,
+    "start_seq": 65020,
+    "end_seq": 338,
+    "ssrc": 3405643778,
+    "muxrate_bps": 900000,
+    "duration_ms": 9989.902,
+    "ts_trailing_bytes": 0
+  },
+  "packets_csv": "dup-reorder.packets.csv",
+  "packet_identity": {
+    "seq16": "16-bit RTP sequence carried on the wire",
+    "ext_seq": "64-bit extended sequence (start_seq + index)",
+    "rtp_ts": "RTP timestamp in 90 kHz units",
+    "packet_index": "original packetization index, stable under faults",
+    "frame": "video frame number rendered into the picture",
+    "program": "program number encoded in the frame barcode"
+  },
+  "fault_plan": [
+    {
+      "action": "duplicate",
+      "at_ms": 3000,
+      "count": 10,
+      "delay_ms": 90,
+      "reason": "dup-window-10"
+    },
+    {
+      "action": "reorder",
+      "at_ms": 4200,
+      "count": 12,
+      "hold_count": 12,
+      "delay_ms": 150,
+      "reason": "reorder-window-12"
+    }
+  ],
+  "fault_events": [
+    {
+      "action": "duplicate",
+      "reason": "dup-window-10",
+      "at_ms": 2994.631,
+      "packet_index": 256,
+      "packet_index_end": 265,
+      "seq16": 65276,
+      "seq16_end": 65285,
+      "ext_seq": 65276,
+      "count": 10,
+      "delay_ms": 90,
+      "frame": 74,
+      "frame_end": 75
+    },
+    {
+      "action": "reorder",
+      "reason": "reorder-window-12",
+      "at_ms": 4199.502,
+      "packet_index": 359,
+      "packet_index_end": 370,
+      "seq16": 65379,
+      "seq16_end": 65390,
+      "ext_seq": 65379,
+      "count": 12,
+      "delay_ms": 150,
+      "frame": 100,
+      "frame_end": 107
+    }
+  ],
+  "summary": {
+    "dropped_packets": 0,
+    "duplicate_copies": 10,
+    "delayed_packets": 12,
+    "wire_packets": 865,
+    "original_packets": 855
+  },
+  "expected": {
+    "loss_runs": 0,
+    "cc_errors": 0
+  },
+  "receiver_contract": {
+    "reorder_timeout_ms": 250,
+    "max_reorder_packets": 256,
+    "reorder_delay_ms": 150,
+    "duplicate_delay_ms": 90
+  }
+}

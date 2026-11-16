@@ -1,0 +1,1447 @@
+{
+  "schema": "tvcast.demo.content/1",
+  "program": {
+    "id": "campus-tts",
+    "number": 3,
+    "label": "图文频道 (Info Ticker)",
+    "style": 2,
+    "fps": 25,
+    "duration_s": 10.0,
+    "video_bps": 600000,
+    "audio_bps": 48000,
+    "muxrate": 800000,
+    "service_id": 1003,
+    "transport_stream_id": 103
+  },
+  "source": {
+    "generator": "tvcast.demo.frames.render_frame",
+    "frame_width": 640,
+    "frame_height": 360,
+    "frame_pix_fmt": "gray",
+    "barcode": {
+      "bits": 28,
+      "crc": "crc8/0x07",
+      "layout": "sync4+program4+index12+crc8",
+      "position": {
+        "x": 20,
+        "y": 318,
+        "bar_w": 8,
+        "gap": 2,
+        "height": 28
+      }
+    },
+    "audio": {
+      "duration": 10.0,
+      "samples": 480000,
+      "sample_rate": 48000,
+      "tone_hz": 1000,
+      "mark_hz": 1500,
+      "pulse_seconds": 0.06
+    },
+    "ffmpeg": {
+      "version": "ffmpeg version 7.0.2-static https://johnvansickle.com/ffmpeg/  Copyright (c) 2000-2024 the FFmpeg developers",
+      "command": [
+        "/workspace/tvcast/tools/ffmpeg-static/ffmpeg",
+        "-y",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-threads",
+        "1",
+        "-fflags",
+        "+bitexact",
+        "-flags",
+        "+bitexact",
+        "-f",
+        "rawvideo",
+        "-framerate",
+        "25",
+        "-pix_fmt",
+        "gray",
+        "-s",
+        "640x360",
+        "-i",
+        "pipe:0",
+        "-i",
+        "/workspace/tvcast/demos/programs/campus-tts/marker.wav",
+        "-map",
+        "0:v",
+        "-map",
+        "1:a",
+        "-c:v",
+        "libx264",
+        "-preset",
+        "veryfast",
+        "-tune",
+        "zerolatency",
+        "-g",
+        "25",
+        "-b:v",
+        "600000",
+        "-x264-params",
+        "threads=1:sliced-threads=0",
+        "-c:a",
+        "aac",
+        "-b:a",
+        "48000",
+        "-muxrate",
+        "800000",
+        "-mpegts_flags",
+        "+pat_pmt_at_frames",
+        "-pcr_period",
+        "40",
+        "-mpegts_service_id",
+        "1003",
+        "-mpegts_transport_stream_id",
+        "103",
+        "-tables_version",
+        "0",
+        "-map_metadata",
+        "-1",
+        "-f",
+        "mpegts",
+        "/workspace/tvcast/demos/programs/campus-tts/content.ts"
+      ]
+    }
+  },
+  "file": "content.ts",
+  "sha256": "be374bbbc1ef691053013b96e407281c0e8a5a692148f2dad905d6cb05a9ce78",
+  "bytes": 1001476,
+  "duration_ms": 10000,
+  "frame_count": 250,
+  "index": {
+    "ts_packets": 5327,
+    "video_pid": 256,
+    "audio_pid": 257,
+    "pmt_pid": 4096,
+    "pcr_pid": 256,
+    "frames": [
+      {
+        "index": 0,
+        "pts": 127920,
+        "ts_packet_index": 12
+      },
+      {
+        "index": 1,
+        "pts": 131520,
+        "ts_packet_index": 33
+      },
+      {
+        "index": 2,
+        "pts": 135120,
+        "ts_packet_index": 54
+      },
+      {
+        "index": 3,
+        "pts": 138720,
+        "ts_packet_index": 76
+      },
+      {
+        "index": 4,
+        "pts": 142320,
+        "ts_packet_index": 97
+      },
+      {
+        "index": 5,
+        "pts": 145920,
+        "ts_packet_index": 118
+      },
+      {
+        "index": 6,
+        "pts": 149520,
+        "ts_packet_index": 139
+      },
+      {
+        "index": 7,
+        "pts": 153120,
+        "ts_packet_index": 161
+      },
+      {
+        "index": 8,
+        "pts": 156720,
+        "ts_packet_index": 182
+      },
+      {
+        "index": 9,
+        "pts": 160320,
+        "ts_packet_index": 208
+      },
+      {
+        "index": 10,
+        "pts": 163920,
+        "ts_packet_index": 225
+      },
+      {
+        "index": 11,
+        "pts": 167520,
+        "ts_packet_index": 246
+      },
+      {
+        "index": 12,
+        "pts": 171120,
+        "ts_packet_index": 267
+      },
+      {
+        "index": 13,
+        "pts": 174720,
+        "ts_packet_index": 288
+      },
+      {
+        "index": 14,
+        "pts": 178320,
+        "ts_packet_index": 310
+      },
+      {
+        "index": 15,
+        "pts": 181920,
+        "ts_packet_index": 331
+      },
+      {
+        "index": 16,
+        "pts": 185520,
+        "ts_packet_index": 352
+      },
+      {
+        "index": 17,
+        "pts": 189120,
+        "ts_packet_index": 373
+      },
+      {
+        "index": 18,
+        "pts": 192720,
+        "ts_packet_index": 395
+      },
+      {
+        "index": 19,
+        "pts": 196320,
+        "ts_packet_index": 416
+      },
+      {
+        "index": 20,
+        "pts": 199920,
+        "ts_packet_index": 437
+      },
+      {
+        "index": 21,
+        "pts": 203520,
+        "ts_packet_index": 459
+      },
+      {
+        "index": 22,
+        "pts": 207120,
+        "ts_packet_index": 480
+      },
+      {
+        "index": 23,
+        "pts": 210720,
+        "ts_packet_index": 501
+      },
+      {
+        "index": 24,
+        "pts": 214320,
+        "ts_packet_index": 522
+      },
+      {
+        "index": 25,
+        "pts": 217920,
+        "ts_packet_index": 544
+      },
+      {
+        "index": 26,
+        "pts": 221520,
+        "ts_packet_index": 571
+      },
+      {
+        "index": 27,
+        "pts": 225120,
+        "ts_packet_index": 587
+      },
+      {
+        "index": 28,
+        "pts": 228720,
+        "ts_packet_index": 608
+      },
+      {
+        "index": 29,
+        "pts": 232320,
+        "ts_packet_index": 629
+      },
+      {
+        "index": 30,
+        "pts": 235920,
+        "ts_packet_index": 650
+      },
+      {
+        "index": 31,
+        "pts": 239520,
+        "ts_packet_index": 671
+      },
+      {
+        "index": 32,
+        "pts": 243120,
+        "ts_packet_index": 693
+      },
+      {
+        "index": 33,
+        "pts": 246720,
+        "ts_packet_index": 714
+      },
+      {
+        "index": 34,
+        "pts": 250320,
+        "ts_packet_index": 735
+      },
+      {
+        "index": 35,
+        "pts": 253920,
+        "ts_packet_index": 756
+      },
+      {
+        "index": 36,
+        "pts": 257520,
+        "ts_packet_index": 778
+      },
+      {
+        "index": 37,
+        "pts": 261120,
+        "ts_packet_index": 799
+      },
+      {
+        "index": 38,
+        "pts": 264720,
+        "ts_packet_index": 820
+      },
+      {
+        "index": 39,
+        "pts": 268320,
+        "ts_packet_index": 842
+      },
+      {
+        "index": 40,
+        "pts": 271920,
+        "ts_packet_index": 863
+      },
+      {
+        "index": 41,
+        "pts": 275520,
+        "ts_packet_index": 884
+      },
+      {
+        "index": 42,
+        "pts": 279120,
+        "ts_packet_index": 905
+      },
+      {
+        "index": 43,
+        "pts": 282720,
+        "ts_packet_index": 927
+      },
+      {
+        "index": 44,
+        "pts": 286320,
+        "ts_packet_index": 948
+      },
+      {
+        "index": 45,
+        "pts": 289920,
+        "ts_packet_index": 969
+      },
+      {
+        "index": 46,
+        "pts": 293520,
+        "ts_packet_index": 991
+      },
+      {
+        "index": 47,
+        "pts": 297120,
+        "ts_packet_index": 1012
+      },
+      {
+        "index": 48,
+        "pts": 300720,
+        "ts_packet_index": 1033
+      },
+      {
+        "index": 49,
+        "pts": 304320,
+        "ts_packet_index": 1054
+      },
+      {
+        "index": 50,
+        "pts": 307920,
+        "ts_packet_index": 1076
+      },
+      {
+        "index": 51,
+        "pts": 311520,
+        "ts_packet_index": 1108
+      },
+      {
+        "index": 52,
+        "pts": 315120,
+        "ts_packet_index": 1121
+      },
+      {
+        "index": 53,
+        "pts": 318720,
+        "ts_packet_index": 1139
+      },
+      {
+        "index": 54,
+        "pts": 322320,
+        "ts_packet_index": 1161
+      },
+      {
+        "index": 55,
+        "pts": 325920,
+        "ts_packet_index": 1182
+      },
+      {
+        "index": 56,
+        "pts": 329520,
+        "ts_packet_index": 1203
+      },
+      {
+        "index": 57,
+        "pts": 333120,
+        "ts_packet_index": 1225
+      },
+      {
+        "index": 58,
+        "pts": 336720,
+        "ts_packet_index": 1246
+      },
+      {
+        "index": 59,
+        "pts": 340320,
+        "ts_packet_index": 1267
+      },
+      {
+        "index": 60,
+        "pts": 343920,
+        "ts_packet_index": 1288
+      },
+      {
+        "index": 61,
+        "pts": 347520,
+        "ts_packet_index": 1310
+      },
+      {
+        "index": 62,
+        "pts": 351120,
+        "ts_packet_index": 1331
+      },
+      {
+        "index": 63,
+        "pts": 354720,
+        "ts_packet_index": 1352
+      },
+      {
+        "index": 64,
+        "pts": 358320,
+        "ts_packet_index": 1373
+      },
+      {
+        "index": 65,
+        "pts": 361920,
+        "ts_packet_index": 1395
+      },
+      {
+        "index": 66,
+        "pts": 365520,
+        "ts_packet_index": 1416
+      },
+      {
+        "index": 67,
+        "pts": 369120,
+        "ts_packet_index": 1437
+      },
+      {
+        "index": 68,
+        "pts": 372720,
+        "ts_packet_index": 1459
+      },
+      {
+        "index": 69,
+        "pts": 376320,
+        "ts_packet_index": 1480
+      },
+      {
+        "index": 70,
+        "pts": 379920,
+        "ts_packet_index": 1501
+      },
+      {
+        "index": 71,
+        "pts": 383520,
+        "ts_packet_index": 1522
+      },
+      {
+        "index": 72,
+        "pts": 387120,
+        "ts_packet_index": 1544
+      },
+      {
+        "index": 73,
+        "pts": 390720,
+        "ts_packet_index": 1565
+      },
+      {
+        "index": 74,
+        "pts": 394320,
+        "ts_packet_index": 1586
+      },
+      {
+        "index": 75,
+        "pts": 397920,
+        "ts_packet_index": 1608
+      },
+      {
+        "index": 76,
+        "pts": 401520,
+        "ts_packet_index": 1640
+      },
+      {
+        "index": 77,
+        "pts": 405120,
+        "ts_packet_index": 1653
+      },
+      {
+        "index": 78,
+        "pts": 408720,
+        "ts_packet_index": 1671
+      },
+      {
+        "index": 79,
+        "pts": 412320,
+        "ts_packet_index": 1693
+      },
+      {
+        "index": 80,
+        "pts": 415920,
+        "ts_packet_index": 1714
+      },
+      {
+        "index": 81,
+        "pts": 419520,
+        "ts_packet_index": 1735
+      },
+      {
+        "index": 82,
+        "pts": 423120,
+        "ts_packet_index": 1758
+      },
+      {
+        "index": 83,
+        "pts": 426720,
+        "ts_packet_index": 1778
+      },
+      {
+        "index": 84,
+        "pts": 430320,
+        "ts_packet_index": 1799
+      },
+      {
+        "index": 85,
+        "pts": 433920,
+        "ts_packet_index": 1820
+      },
+      {
+        "index": 86,
+        "pts": 437520,
+        "ts_packet_index": 1842
+      },
+      {
+        "index": 87,
+        "pts": 441120,
+        "ts_packet_index": 1863
+      },
+      {
+        "index": 88,
+        "pts": 444720,
+        "ts_packet_index": 1884
+      },
+      {
+        "index": 89,
+        "pts": 448320,
+        "ts_packet_index": 1905
+      },
+      {
+        "index": 90,
+        "pts": 451920,
+        "ts_packet_index": 1927
+      },
+      {
+        "index": 91,
+        "pts": 455520,
+        "ts_packet_index": 1948
+      },
+      {
+        "index": 92,
+        "pts": 459120,
+        "ts_packet_index": 1969
+      },
+      {
+        "index": 93,
+        "pts": 462720,
+        "ts_packet_index": 1991
+      },
+      {
+        "index": 94,
+        "pts": 466320,
+        "ts_packet_index": 2012
+      },
+      {
+        "index": 95,
+        "pts": 469920,
+        "ts_packet_index": 2033
+      },
+      {
+        "index": 96,
+        "pts": 473520,
+        "ts_packet_index": 2054
+      },
+      {
+        "index": 97,
+        "pts": 477120,
+        "ts_packet_index": 2076
+      },
+      {
+        "index": 98,
+        "pts": 480720,
+        "ts_packet_index": 2097
+      },
+      {
+        "index": 99,
+        "pts": 484320,
+        "ts_packet_index": 2118
+      },
+      {
+        "index": 100,
+        "pts": 487920,
+        "ts_packet_index": 2139
+      },
+      {
+        "index": 101,
+        "pts": 491520,
+        "ts_packet_index": 2175
+      },
+      {
+        "index": 102,
+        "pts": 495120,
+        "ts_packet_index": 2187
+      },
+      {
+        "index": 103,
+        "pts": 498720,
+        "ts_packet_index": 2203
+      },
+      {
+        "index": 104,
+        "pts": 502320,
+        "ts_packet_index": 2225
+      },
+      {
+        "index": 105,
+        "pts": 505920,
+        "ts_packet_index": 2246
+      },
+      {
+        "index": 106,
+        "pts": 509520,
+        "ts_packet_index": 2267
+      },
+      {
+        "index": 107,
+        "pts": 513120,
+        "ts_packet_index": 2289
+      },
+      {
+        "index": 108,
+        "pts": 516720,
+        "ts_packet_index": 2310
+      },
+      {
+        "index": 109,
+        "pts": 520320,
+        "ts_packet_index": 2336
+      },
+      {
+        "index": 110,
+        "pts": 523920,
+        "ts_packet_index": 2355
+      },
+      {
+        "index": 111,
+        "pts": 527520,
+        "ts_packet_index": 2373
+      },
+      {
+        "index": 112,
+        "pts": 531120,
+        "ts_packet_index": 2395
+      },
+      {
+        "index": 113,
+        "pts": 534720,
+        "ts_packet_index": 2417
+      },
+      {
+        "index": 114,
+        "pts": 538320,
+        "ts_packet_index": 2440
+      },
+      {
+        "index": 115,
+        "pts": 541920,
+        "ts_packet_index": 2459
+      },
+      {
+        "index": 116,
+        "pts": 545520,
+        "ts_packet_index": 2480
+      },
+      {
+        "index": 117,
+        "pts": 549120,
+        "ts_packet_index": 2501
+      },
+      {
+        "index": 118,
+        "pts": 552720,
+        "ts_packet_index": 2522
+      },
+      {
+        "index": 119,
+        "pts": 556320,
+        "ts_packet_index": 2544
+      },
+      {
+        "index": 120,
+        "pts": 559920,
+        "ts_packet_index": 2565
+      },
+      {
+        "index": 121,
+        "pts": 563520,
+        "ts_packet_index": 2586
+      },
+      {
+        "index": 122,
+        "pts": 567120,
+        "ts_packet_index": 2608
+      },
+      {
+        "index": 123,
+        "pts": 570720,
+        "ts_packet_index": 2629
+      },
+      {
+        "index": 124,
+        "pts": 574320,
+        "ts_packet_index": 2650
+      },
+      {
+        "index": 125,
+        "pts": 577920,
+        "ts_packet_index": 2671
+      },
+      {
+        "index": 126,
+        "pts": 581520,
+        "ts_packet_index": 2707
+      },
+      {
+        "index": 127,
+        "pts": 585120,
+        "ts_packet_index": 2725
+      },
+      {
+        "index": 128,
+        "pts": 588720,
+        "ts_packet_index": 2740
+      },
+      {
+        "index": 129,
+        "pts": 592320,
+        "ts_packet_index": 2757
+      },
+      {
+        "index": 130,
+        "pts": 595920,
+        "ts_packet_index": 2778
+      },
+      {
+        "index": 131,
+        "pts": 599520,
+        "ts_packet_index": 2799
+      },
+      {
+        "index": 132,
+        "pts": 603120,
+        "ts_packet_index": 2820
+      },
+      {
+        "index": 133,
+        "pts": 606720,
+        "ts_packet_index": 2842
+      },
+      {
+        "index": 134,
+        "pts": 610320,
+        "ts_packet_index": 2863
+      },
+      {
+        "index": 135,
+        "pts": 613920,
+        "ts_packet_index": 2884
+      },
+      {
+        "index": 136,
+        "pts": 617520,
+        "ts_packet_index": 2914
+      },
+      {
+        "index": 137,
+        "pts": 621120,
+        "ts_packet_index": 2933
+      },
+      {
+        "index": 138,
+        "pts": 624720,
+        "ts_packet_index": 2954
+      },
+      {
+        "index": 139,
+        "pts": 628320,
+        "ts_packet_index": 2970
+      },
+      {
+        "index": 140,
+        "pts": 631920,
+        "ts_packet_index": 2991
+      },
+      {
+        "index": 141,
+        "pts": 635520,
+        "ts_packet_index": 3012
+      },
+      {
+        "index": 142,
+        "pts": 639120,
+        "ts_packet_index": 3033
+      },
+      {
+        "index": 143,
+        "pts": 642720,
+        "ts_packet_index": 3054
+      },
+      {
+        "index": 144,
+        "pts": 646320,
+        "ts_packet_index": 3076
+      },
+      {
+        "index": 145,
+        "pts": 649920,
+        "ts_packet_index": 3097
+      },
+      {
+        "index": 146,
+        "pts": 653520,
+        "ts_packet_index": 3118
+      },
+      {
+        "index": 147,
+        "pts": 657120,
+        "ts_packet_index": 3139
+      },
+      {
+        "index": 148,
+        "pts": 660720,
+        "ts_packet_index": 3161
+      },
+      {
+        "index": 149,
+        "pts": 664320,
+        "ts_packet_index": 3182
+      },
+      {
+        "index": 150,
+        "pts": 667920,
+        "ts_packet_index": 3203
+      },
+      {
+        "index": 151,
+        "pts": 671520,
+        "ts_packet_index": 3240
+      },
+      {
+        "index": 152,
+        "pts": 675120,
+        "ts_packet_index": 3257
+      },
+      {
+        "index": 153,
+        "pts": 678720,
+        "ts_packet_index": 3272
+      },
+      {
+        "index": 154,
+        "pts": 682320,
+        "ts_packet_index": 3294
+      },
+      {
+        "index": 155,
+        "pts": 685920,
+        "ts_packet_index": 3313
+      },
+      {
+        "index": 156,
+        "pts": 689520,
+        "ts_packet_index": 3331
+      },
+      {
+        "index": 157,
+        "pts": 693120,
+        "ts_packet_index": 3352
+      },
+      {
+        "index": 158,
+        "pts": 696720,
+        "ts_packet_index": 3373
+      },
+      {
+        "index": 159,
+        "pts": 700320,
+        "ts_packet_index": 3395
+      },
+      {
+        "index": 160,
+        "pts": 703920,
+        "ts_packet_index": 3416
+      },
+      {
+        "index": 161,
+        "pts": 707520,
+        "ts_packet_index": 3437
+      },
+      {
+        "index": 162,
+        "pts": 711120,
+        "ts_packet_index": 3459
+      },
+      {
+        "index": 163,
+        "pts": 714720,
+        "ts_packet_index": 3480
+      },
+      {
+        "index": 164,
+        "pts": 718320,
+        "ts_packet_index": 3501
+      },
+      {
+        "index": 165,
+        "pts": 721920,
+        "ts_packet_index": 3522
+      },
+      {
+        "index": 166,
+        "pts": 725520,
+        "ts_packet_index": 3544
+      },
+      {
+        "index": 167,
+        "pts": 729120,
+        "ts_packet_index": 3566
+      },
+      {
+        "index": 168,
+        "pts": 732720,
+        "ts_packet_index": 3586
+      },
+      {
+        "index": 169,
+        "pts": 736320,
+        "ts_packet_index": 3608
+      },
+      {
+        "index": 170,
+        "pts": 739920,
+        "ts_packet_index": 3629
+      },
+      {
+        "index": 171,
+        "pts": 743520,
+        "ts_packet_index": 3652
+      },
+      {
+        "index": 172,
+        "pts": 747120,
+        "ts_packet_index": 3671
+      },
+      {
+        "index": 173,
+        "pts": 750720,
+        "ts_packet_index": 3693
+      },
+      {
+        "index": 174,
+        "pts": 754320,
+        "ts_packet_index": 3715
+      },
+      {
+        "index": 175,
+        "pts": 757920,
+        "ts_packet_index": 3735
+      },
+      {
+        "index": 176,
+        "pts": 761520,
+        "ts_packet_index": 3771
+      },
+      {
+        "index": 177,
+        "pts": 765120,
+        "ts_packet_index": 3784
+      },
+      {
+        "index": 178,
+        "pts": 768720,
+        "ts_packet_index": 3799
+      },
+      {
+        "index": 179,
+        "pts": 772320,
+        "ts_packet_index": 3820
+      },
+      {
+        "index": 180,
+        "pts": 775920,
+        "ts_packet_index": 3842
+      },
+      {
+        "index": 181,
+        "pts": 779520,
+        "ts_packet_index": 3864
+      },
+      {
+        "index": 182,
+        "pts": 783120,
+        "ts_packet_index": 3884
+      },
+      {
+        "index": 183,
+        "pts": 786720,
+        "ts_packet_index": 3905
+      },
+      {
+        "index": 184,
+        "pts": 790320,
+        "ts_packet_index": 3927
+      },
+      {
+        "index": 185,
+        "pts": 793920,
+        "ts_packet_index": 3948
+      },
+      {
+        "index": 186,
+        "pts": 797520,
+        "ts_packet_index": 3969
+      },
+      {
+        "index": 187,
+        "pts": 801120,
+        "ts_packet_index": 3991
+      },
+      {
+        "index": 188,
+        "pts": 804720,
+        "ts_packet_index": 4012
+      },
+      {
+        "index": 189,
+        "pts": 808320,
+        "ts_packet_index": 4033
+      },
+      {
+        "index": 190,
+        "pts": 811920,
+        "ts_packet_index": 4057
+      },
+      {
+        "index": 191,
+        "pts": 815520,
+        "ts_packet_index": 4076
+      },
+      {
+        "index": 192,
+        "pts": 819120,
+        "ts_packet_index": 4098
+      },
+      {
+        "index": 193,
+        "pts": 822720,
+        "ts_packet_index": 4118
+      },
+      {
+        "index": 194,
+        "pts": 826320,
+        "ts_packet_index": 4139
+      },
+      {
+        "index": 195,
+        "pts": 829920,
+        "ts_packet_index": 4161
+      },
+      {
+        "index": 196,
+        "pts": 833520,
+        "ts_packet_index": 4182
+      },
+      {
+        "index": 197,
+        "pts": 837120,
+        "ts_packet_index": 4203
+      },
+      {
+        "index": 198,
+        "pts": 840720,
+        "ts_packet_index": 4226
+      },
+      {
+        "index": 199,
+        "pts": 844320,
+        "ts_packet_index": 4246
+      },
+      {
+        "index": 200,
+        "pts": 847920,
+        "ts_packet_index": 4267
+      },
+      {
+        "index": 201,
+        "pts": 851520,
+        "ts_packet_index": 4304
+      },
+      {
+        "index": 202,
+        "pts": 855120,
+        "ts_packet_index": 4317
+      },
+      {
+        "index": 203,
+        "pts": 858720,
+        "ts_packet_index": 4332
+      },
+      {
+        "index": 204,
+        "pts": 862320,
+        "ts_packet_index": 4352
+      },
+      {
+        "index": 205,
+        "pts": 865920,
+        "ts_packet_index": 4373
+      },
+      {
+        "index": 206,
+        "pts": 869520,
+        "ts_packet_index": 4395
+      },
+      {
+        "index": 207,
+        "pts": 873120,
+        "ts_packet_index": 4416
+      },
+      {
+        "index": 208,
+        "pts": 876720,
+        "ts_packet_index": 4437
+      },
+      {
+        "index": 209,
+        "pts": 880320,
+        "ts_packet_index": 4468
+      },
+      {
+        "index": 210,
+        "pts": 883920,
+        "ts_packet_index": 4490
+      },
+      {
+        "index": 211,
+        "pts": 887520,
+        "ts_packet_index": 4508
+      },
+      {
+        "index": 212,
+        "pts": 891120,
+        "ts_packet_index": 4525
+      },
+      {
+        "index": 213,
+        "pts": 894720,
+        "ts_packet_index": 4544
+      },
+      {
+        "index": 214,
+        "pts": 898320,
+        "ts_packet_index": 4565
+      },
+      {
+        "index": 215,
+        "pts": 901920,
+        "ts_packet_index": 4586
+      },
+      {
+        "index": 216,
+        "pts": 905520,
+        "ts_packet_index": 4608
+      },
+      {
+        "index": 217,
+        "pts": 909120,
+        "ts_packet_index": 4629
+      },
+      {
+        "index": 218,
+        "pts": 912720,
+        "ts_packet_index": 4650
+      },
+      {
+        "index": 219,
+        "pts": 916320,
+        "ts_packet_index": 4671
+      },
+      {
+        "index": 220,
+        "pts": 919920,
+        "ts_packet_index": 4693
+      },
+      {
+        "index": 221,
+        "pts": 923520,
+        "ts_packet_index": 4714
+      },
+      {
+        "index": 222,
+        "pts": 927120,
+        "ts_packet_index": 4735
+      },
+      {
+        "index": 223,
+        "pts": 930720,
+        "ts_packet_index": 4756
+      },
+      {
+        "index": 224,
+        "pts": 934320,
+        "ts_packet_index": 4778
+      },
+      {
+        "index": 225,
+        "pts": 937920,
+        "ts_packet_index": 4799
+      },
+      {
+        "index": 226,
+        "pts": 941520,
+        "ts_packet_index": 4836
+      },
+      {
+        "index": 227,
+        "pts": 945120,
+        "ts_packet_index": 4854
+      },
+      {
+        "index": 228,
+        "pts": 948720,
+        "ts_packet_index": 4870
+      },
+      {
+        "index": 229,
+        "pts": 952320,
+        "ts_packet_index": 4884
+      },
+      {
+        "index": 230,
+        "pts": 955920,
+        "ts_packet_index": 4905
+      },
+      {
+        "index": 231,
+        "pts": 959520,
+        "ts_packet_index": 4927
+      },
+      {
+        "index": 232,
+        "pts": 963120,
+        "ts_packet_index": 4948
+      },
+      {
+        "index": 233,
+        "pts": 966720,
+        "ts_packet_index": 4969
+      },
+      {
+        "index": 234,
+        "pts": 970320,
+        "ts_packet_index": 4992
+      },
+      {
+        "index": 235,
+        "pts": 973920,
+        "ts_packet_index": 5015
+      },
+      {
+        "index": 236,
+        "pts": 977520,
+        "ts_packet_index": 5040
+      },
+      {
+        "index": 237,
+        "pts": 981120,
+        "ts_packet_index": 5057
+      },
+      {
+        "index": 238,
+        "pts": 984720,
+        "ts_packet_index": 5076
+      },
+      {
+        "index": 239,
+        "pts": 988320,
+        "ts_packet_index": 5098
+      },
+      {
+        "index": 240,
+        "pts": 991920,
+        "ts_packet_index": 5118
+      },
+      {
+        "index": 241,
+        "pts": 995520,
+        "ts_packet_index": 5139
+      },
+      {
+        "index": 242,
+        "pts": 999120,
+        "ts_packet_index": 5161
+      },
+      {
+        "index": 243,
+        "pts": 1002720,
+        "ts_packet_index": 5182
+      },
+      {
+        "index": 244,
+        "pts": 1006320,
+        "ts_packet_index": 5203
+      },
+      {
+        "index": 245,
+        "pts": 1009920,
+        "ts_packet_index": 5225
+      },
+      {
+        "index": 246,
+        "pts": 1013520,
+        "ts_packet_index": 5246
+      },
+      {
+        "index": 247,
+        "pts": 1017120,
+        "ts_packet_index": 5267
+      },
+      {
+        "index": 248,
+        "pts": 1020720,
+        "ts_packet_index": 5288
+      },
+      {
+        "index": 249,
+        "pts": 1024320,
+        "ts_packet_index": 5310
+      }
+    ],
+    "pat_version": 0,
+    "pmt_version": 0,
+    "ts_packets_by_pid": {
+      "0": 250,
+      "17": 21,
+      "256": 3745,
+      "257": 124,
+      "4096": 250,
+      "8191": 937
+    }
+  },
+  "audio_markers": [
+    {
+      "second": 0,
+      "kind": "mark",
+      "at_ms": 0,
+      "tone_hz": 1500
+    },
+    {
+      "second": 1,
+      "kind": "tick",
+      "at_ms": 1000,
+      "tone_hz": 1000
+    },
+    {
+      "second": 2,
+      "kind": "tick",
+      "at_ms": 2000,
+      "tone_hz": 1000
+    },
+    {
+      "second": 3,
+      "kind": "tick",
+      "at_ms": 3000,
+      "tone_hz": 1000
+    },
+    {
+      "second": 4,
+      "kind": "tick",
+      "at_ms": 4000,
+      "tone_hz": 1000
+    },
+    {
+      "second": 5,
+      "kind": "mark",
+      "at_ms": 5000,
+      "tone_hz": 1500
+    },
+    {
+      "second": 6,
+      "kind": "tick",
+      "at_ms": 6000,
+      "tone_hz": 1000
+    },
+    {
+      "second": 7,
+      "kind": "tick",
+      "at_ms": 7000,
+      "tone_hz": 1000
+    },
+    {
+      "second": 8,
+      "kind": "tick",
+      "at_ms": 8000,
+      "tone_hz": 1000
+    },
+    {
+      "second": 9,
+      "kind": "tick",
+      "at_ms": 9000,
+      "tone_hz": 1000
+    }
+  ],
+  "marker_wav": {
+    "file": "marker.wav",
+    "sha256": "df07fe5ecf4e1bf7691b8bcacc7e9a1200831656874f27242de8f7fc9b5ffbb3"
+  }
+}

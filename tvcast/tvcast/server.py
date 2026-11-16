@@ -7,6 +7,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from .core import BroadcastKernel
+from .demo.library import DEMO_REPLAY_PORT, DemoLibrary
 
 
 class ControlServer:
@@ -18,6 +19,7 @@ class ControlServer:
         self._subscribers = []
         self._subs_lock = threading.Lock()
         self.kernel.add_listener(self._broadcast)
+        self.demos = DemoLibrary(self.base_dir, notify=self._broadcast)
         self.httpd = None
 
     def _broadcast(self, event):
@@ -54,14 +56,26 @@ class ControlServer:
                     return self._static("index.html", "text/html; charset=utf-8")
                 if path == "/api/state":
                     return self._json(kernel.snapshot())
+                if path == "/api/demo/state":
+                    return self._json(server._demo_state())
+                if path == "/api/demo/catalog":
+                    return self._json(server.demos.catalog())
                 if path == "/api/events":
                     return self._sse()
                 if path == "/video":
                     return self._video()
+                if path == "/api/demo/video":
+                    return self._demo_video()
                 if path == "/api/captures":
                     return self._json(server._capture_list())
+                if path == "/api/demo/assets":
+                    return self._json(server.demos.catalog())
+                if path.startswith("/api/demo/assets/"):
+                    return self._download(path[len("/api/demo/assets/"):])
                 if path.startswith("/captures/"):
                     return self._download(path[len("/captures/"):])
+                if path.startswith("/demos/"):
+                    return self._download_demo(path[len("/demos/"):])
                 self._json({"error": "not found"}, 404)
 
             def do_POST(self):
@@ -133,9 +147,45 @@ class ControlServer:
                 finally:
                     rx.remove_stream(proc)
 
+            def _demo_video(self):
+                session = server.demos.session
+                if not session:
+                    return self._json({"error": "demo replay not running"}, 409)
+                rx = session.receiver
+                proc = rx.add_stream()
+                self.send_response(200)
+                self.send_header("Content-Type", "video/mp4")
+                self.send_header("Cache-Control", "no-cache")
+                self.end_headers()
+                try:
+                    while True:
+                        chunk = proc.stdout.read(8192)
+                        if not chunk:
+                            break
+                        self.wfile.write(chunk)
+                        self.wfile.flush()
+                except (BrokenPipeError, ConnectionResetError, OSError):
+                    pass
+                finally:
+                    rx.remove_stream(proc)
+
             def _download(self, name):
                 f = (base_dir / "captures" / Path(name).name).resolve()
                 if not str(f).startswith(str(base_dir.resolve())) or not f.exists():
+                    return self._json({"error": "not found"}, 404)
+                body = f.read_bytes()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/octet-stream")
+                self.send_header("Content-Disposition",
+                                 f'attachment; filename="{f.name}"')
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+
+            def _download_demo(self, name):
+                root = (base_dir / "demos").resolve()
+                f = (root / Path(name)).resolve()
+                if not f.is_relative_to(root) or not f.is_file():
                     return self._json({"error": "not found"}, 404)
                 body = f.read_bytes()
                 self.send_response(200)
@@ -152,6 +202,7 @@ class ControlServer:
     def stop(self):
         if self.httpd:
             self.httpd.shutdown()
+        self.demos.stop_replay()
         self.kernel.stop_pipeline()
 
     def _dispatch(self, path, payload):
@@ -174,9 +225,34 @@ class ControlServer:
             k.block(float(payload.get("seconds", 3)))
         elif path == "/api/scenario":
             k.run_scenario(payload["name"])
+        elif path == "/api/demo/replay":
+            session = self.demos.start_replay(
+                payload["asset"], speed=payload.get("speed", 1.0),
+                port=DEMO_REPLAY_PORT,
+                program_id=payload.get("program"))
+            return {"ok": True, "demo": session,
+                    "catalog": self.demos.catalog()}
+        elif path == "/api/demo/stop":
+            self.demos.stop_replay()
+            return {"ok": True, "demo": self.demos.state()}
+        elif path == "/api/demo/inject":
+            self.demos.inject(
+                reorder_packets=payload.get("reorder_packets"),
+                duplicate_packets=payload.get("duplicate_packets"))
+            return {"ok": True, "demo": self.demos.state()}
+        elif path == "/api/demo/program":
+            self.demos.switch_program(payload["asset"], payload["program"])
+            return {"ok": True, "demo": self.demos.state()}
         else:
             raise ValueError(f"unknown endpoint {path}")
         return k.snapshot()
+
+    def _demo_state(self):
+        state = self.demos.state()
+        state["receiver_endpoint"] = (
+            f"rtp://127.0.0.1:{DEMO_REPLAY_PORT} "
+            "(UDP, the same Receiver that handles live broadcast)")
+        return state
 
     def _capture_list(self):
         d = self.base_dir / "captures"

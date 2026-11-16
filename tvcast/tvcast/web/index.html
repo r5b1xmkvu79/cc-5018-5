@@ -109,6 +109,55 @@
     </div>
 
     <div class="panel">
+      <h2>演示素材库（真实 RTP 记录重放；预览来自实际接收的包）</h2>
+      <div class="row">
+        <select id="demoAsset"></select>
+        <label>速度</label>
+        <select id="demoSpeed">
+          <option value="1">1×</option>
+          <option value="2">2×</option>
+          <option value="4">4×</option>
+        </select>
+        <button class="primary" id="btnDemoPlay">载入并重放</button>
+        <button id="btnDemoStop">停止重放</button>
+      </div>
+      <div class="row">
+        <label>节目</label>
+        <select id="demoProgramSel"></select>
+        <button id="btnDemoProgram">切换节目</button>
+        <span id="demoProgram" class="pill">-</span>
+      </div>
+      <div class="row">
+        <label>注入乱序</label>
+        <input type="range" id="demoReorder" min="0" max="24" value="0">
+        <span id="demoReorderVal" class="hint">0 包</span>
+        <label style="margin-left:12px">注入重复</label>
+        <input type="range" id="demoDup" min="0" max="24" value="0">
+        <span id="demoDupVal" class="hint">0 包</span>
+        <button id="btnDemoInject">应用注入</button>
+      </div>
+      <div class="row">
+        <span id="demoMeta" class="hint"></span>
+      </div>
+      <video id="demoTv" controls muted autoplay playsinline
+             style="margin-top:8px"></video>
+      <div class="hint" id="demoVideoHint">
+        预览由接收端重排/去抖后的 TS 经 ffmpeg 实时产出；暂停或结束需重新点“载入并重放”。
+      </div>
+      <div class="row"><button id="btnDemoVideo">重新载入演示预览</button></div>
+    </div>
+
+    <div class="panel">
+      <h2>演示证据（声明的故障 vs 接收端实际观测）</h2>
+      <div id="demoReplay" class="kv"></div>
+      <div id="demoEvidence" class="hint" style="margin-top:6px"></div>
+      <table style="margin-top:8px"><thead><tr>
+        <th>检查项</th><th>实际</th><th>声明</th><th>结果</th></tr></thead>
+        <tbody id="demoChecks"></tbody></table>
+      <div id="demoFaults" class="log" style="margin-top:8px;max-height:150px"></div>
+    </div>
+
+    <div class="panel">
       <h2>编排场景（观察首次可解码时刻与缓冲上限）</h2>
       <div class="row">
         <button data-scn="continuous">连续播出+受控丢包</button>
@@ -123,7 +172,11 @@
 
   <div>
     <div class="panel">
-      <h2>包连续性（接收端，数据全部来自实际收包）</h2>
+      <h2>包连续性（演示重放接收端，数据来自实际收包）</h2>
+      <div class="kv" id="demoRx"></div>
+    </div>
+    <div class="panel">
+      <h2>包连续性（直播接收端，数据全部来自实际收包）</h2>
       <div class="kv" id="rxStats"></div>
     </div>
     <div class="panel">
@@ -167,8 +220,8 @@ async function post(path, body){
   $('actionError').textContent = '';
   return j;
 }
-const kv = (obj, rows) => {
-  $('rxStats').innerHTML = rows.map(([k,v,cls]) =>
+const kv = (id, rows) => {
+  $(id).innerHTML = rows.map(([k,v,cls]) =>
     `<div class="k">${k}</div><div class="v ${cls||''}">${v ?? '-'}</div>`).join('');
 };
 const n = v => (v ?? 0).toLocaleString();
@@ -279,6 +332,157 @@ async function poll(){
   catch(e){ /* transient */ }
 }
 setInterval(poll, 1000); poll();
+
+// ---------------------------------------------------------------- demo library
+let demoCatalogLoaded = false;
+async function loadDemoCatalog(){
+  const j = await (await fetch('/api/demo/catalog')).json();
+  const sel = $('demoAsset');
+  const keep = sel.value;
+  sel.innerHTML = j.assets.map(a =>
+    `<option value="${a.id}">${a.label} · ${a.program_label} · ${a.wire_packets}包`+
+    `${a.summary.dropped_packets?` · 丢${a.summary.dropped_packets}`:''}`+
+    `${a.summary.duplicate_copies?` · 重${a.summary.duplicate_copies}`:''}`+
+    `${a.summary.delayed_packets?` · 乱${a.summary.delayed_packets}`:''}`+
+    `</option>`).join('');
+  if(keep && j.assets.some(a=>a.id===keep)) sel.value = keep;
+  const programs = {};
+  j.assets.forEach(a=>{ programs[a.program] = a.program_label; });
+  const psel = $('demoProgramSel');
+  const pkeep = psel.value;
+  psel.innerHTML = Object.entries(programs).map(([k,v])=>
+    `<option value="${k}">${v}</option>`).join('');
+  if(pkeep && programs[pkeep]) psel.value = pkeep;
+  demoCatalogLoaded = true;
+  const first = j.assets.find(a=>a.id===sel.value) || j.assets[0];
+  renderDemoMeta(first);
+  return j;
+}
+function renderDemoMeta(a){
+  if(!a){ $('demoMeta').textContent=''; return; }
+  $('demoMeta').innerHTML =
+    `${a.description} · 节目号 ${a.program_number} · ${a.frame_count} 帧 · `+
+    `${a.duration_ms} ms · wire sha256 <code>${a.wire_sha256.slice(0,16)}…</code>`+
+    ` · <a href="/demos/assets/${a.wire_file}">下载 wire</a>`;
+}
+function renderDemo(s){
+  const rp = s.replay || {};
+  const rx = s.receiver && s.receiver.stats;
+  $('demoProgram').textContent = s.asset ?
+    `节目 ${s.asset.program_number} · ${s.asset.program}` : '节目 -';
+  if(!s.active){
+    kv('demoRx', []);
+    kv('demoReplay', []);
+    return;
+  }
+  kv('demoReplay', [
+    ['素材', s.asset.id],
+    ['节目(条码号)', `${s.asset.program_number} · ${s.asset.program}`],
+    ['状态', rp.finished?'已结束':(rp.running?'重放中':'就绪'),
+      rp.finished?'stat-warn':'stat-ok'],
+    ['已发送/记录包', `${rp.sent} / ${rp.records}`],
+    ['实况注入乱序/重复', `${rp.injected_reorder} / ${rp.injected_duplicate}`],
+    ['注入效果', rp.injection_effect || '未注入'],
+    ['声明丢弃/重复/乱序', `${s.manifest.summary.dropped_packets} / `+
+      `${s.manifest.summary.duplicate_copies} / `+
+      `${s.manifest.summary.delayed_packets}`],
+    ['声明 TS 连续性错误', s.manifest.expected.cc_errors],
+    ['声明缺失区间数', s.manifest.expected.loss_runs],
+    ['素材文件名', s.content.file],
+  ]);
+  if(rx){
+    kv('demoRx', [
+      ['收到 RTP 数据报', n(rx.datagrams)],
+      ['有序包', n(rx.in_order)],
+      ['乱序包(已重排)', n(rx.out_of_order), rx.out_of_order?'stat-warn':''],
+      ['重复包', n(rx.duplicates), rx.duplicates?'stat-warn':''],
+      ['迟到(缺失已判定后)', n(rx.late_after_gap), rx.late_after_gap?'stat-warn':''],
+      ['不可恢复缺失包', n(rx.missing_packets), rx.missing_packets?'stat-bad':'stat-ok'],
+      ['缺失区间数', n(rx.gap_intervals), rx.gap_intervals?'stat-bad':'stat-ok'],
+      ['填充 null TS 包', n(rx.null_ts_inserted)],
+      ['TS 连续性计数错误', n(s.receiver.ts.cc_errors),
+        s.receiver.ts.cc_errors?'stat-bad':'stat-ok'],
+      ['PCR 抖动 last(µs)', s.receiver.ts.pcr_jitter_us.last],
+      ['播放队列当前/高水位',
+        `${rx.playout_queue_now} / ${rx.playout_high_water}`],
+      ['首包到达(s)', rx.first_packet_at, 'stat-ok'],
+    ]);
+  }
+  const fe = s.manifest.fault_events || [];
+  $('demoFaults').innerHTML = fe.map(e=>{
+    const cls = e.action==='drop'?'gap':'warn';
+    return `<div class="e ${cls}">${(e.at_ms/1000).toFixed(3)}s `+
+      `[${e.action}] 包#${e.packet_index}–${e.packet_index_end} `+
+      `seq16 ${e.seq16}→${e.seq16_end} `+
+      `帧 ${e.frame}–${e.frame_end} · ${e.reason}</div>`;
+  }).join('') || '<div class="e dim">该素材无故障事件</div>';
+
+  const res = s.last_result;
+  if(!res){ $('demoEvidence').textContent = rp.finished ?
+    '核验进行中…' : '重放结束后自动核验并列出证据。'; $('demoChecks').innerHTML=''; return; }
+  if(res.error){
+    $('demoEvidence').innerHTML =
+      `<span class="stat-bad">核验失败: ${res.error}</span>`;
+    $('demoChecks').innerHTML=''; return;
+  }
+  const v = res.verification || {};
+  $('demoEvidence').innerHTML =
+    `通过 <b class="${res.failed?'stat-warn':'stat-ok'}">${res.passed}</b> / `+
+    `${res.checks.length} 项 · 解码帧 ${v.decoded_frames ?? '-'}（条码可读 `+
+    `${v.barcodes_read ?? '-'}）· 音频标记 ${(v.audio_markers||[]).length} 个`+
+    (res.capture_url ? ` · 捕获 <a href="${res.capture_url}">`+
+      `${res.capture.split('/').pop()}</a>` : '');
+  $('demoChecks').innerHTML = res.checks.map(c=>`<tr>
+    <td>${c.key}</td><td>${c.actual}</td><td>${c.expected}</td>
+    <td class="${c.passed?'stat-ok':'stat-bad'}">${c.passed?'通过':'未通过'}</td>
+  </tr>`).join('');
+}
+async function pollDemo(){
+  try{
+    const s = await (await fetch('/api/demo/state')).json();
+    renderDemo(s);
+  }catch(e){ /* transient */ }
+}
+setInterval(pollDemo, 1000); pollDemo();
+
+$('demoAsset').onchange = async ()=>{
+  if(!demoCatalogLoaded) return;
+  const j = await (await fetch('/api/demo/catalog')).json();
+  renderDemoMeta(j.assets.find(a=>a.id===$('demoAsset').value));
+};
+$('btnDemoPlay').onclick = async ()=>{
+  await post('/api/demo/replay', {asset:$('demoAsset').value,
+    speed:+$('demoSpeed').value});
+  setTimeout(()=>{ $('demoTv').src = '/api/demo/video?t='+Date.now(); }, 900);
+  pollDemo();
+};
+$('btnDemoProgram').onclick = async ()=>{
+  const wanted = $('demoProgramSel').value;
+  const j = await (await fetch('/api/demo/catalog')).json();
+  const current = j.assets.find(a=>a.id===$('demoAsset').value);
+  let asset = current && current.program===wanted ? current
+    : j.assets.find(a=>a.program===wanted);
+  if(!asset){
+    $('actionError').textContent =
+      '失败反馈: 演示素材库没有该节目的可用资产';
+    return;
+  }
+  $('demoAsset').value = asset.id;
+  renderDemoMeta(asset);
+  await post('/api/demo/program', {asset:asset.id, program:wanted});
+  setTimeout(()=>{ $('demoTv').src = '/api/demo/video?t='+Date.now(); }, 900);
+  pollDemo();
+};
+$('btnDemoStop').onclick = ()=> post('/api/demo/stop');
+$('btnDemoVideo').onclick = ()=>{ $('demoTv').src = '/api/demo/video?t='+Date.now(); };
+for(const id of ['demoReorder','demoDup']){
+  $(id).oninput = ()=>{ $(id+'Val').textContent = $(id).value + ' 包'; };
+}
+$('btnDemoInject').onclick = ()=> post('/api/demo/inject', {
+  reorder_packets:+$('demoReorder').value,
+  duplicate_packets:+$('demoDup').value});
+loadDemoCatalog().catch(()=>{});
+
 
 $('btnStart').onclick = async ()=>{ await post('/api/pipeline/start');
   setTimeout(()=>{ $('tv').src = '/video?t='+Date.now(); }, 1500); poll(); };

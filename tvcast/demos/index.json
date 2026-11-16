@@ -1,0 +1,37 @@
+{
+  "schema": "tvcast.demo.index/1",
+  "assets": [
+    {
+      "id": "clean",
+      "label": "清洁基线 · 无损伤",
+      "program": "campus-news",
+      "wire": "clean.wire",
+      "wire_sha256": "41bccd699ecf30a2f359536faedf193af06836f8bf29e6c409d52ddff3e5170c",
+      "manifest": "clean.json"
+    },
+    {
+      "id": "loss-burst",
+      "label": "连丢包突发 · 恢复",
+      "program": "campus-news",
+      "wire": "loss-burst.wire",
+      "wire_sha256": "e9c479c080c45789a2ed4404dd04bec8fa711c5858770d013b8b4942de748212",
+      "manifest": "loss-burst.json"
+    },
+    {
+      "id": "dup-reorder",
+      "label": "重复 + 乱序突发 · 重排恢复",
+      "program": "campus-life",
+      "wire": "dup-reorder.wire",
+      "wire_sha256": "a9dff3f0a339c4984c809a32f81820919c5ac91f4a445fb61ae69a8b33a4abf7",
+      "manifest": "dup-reorder.json"
+    },
+    {
+      "id": "outage-long",
+      "label": "超时断流 · 不可恢复区间",
+      "program": "campus-tts",
+      "wire": "outage-long.wire",
+      "wire_sha256": "fda55706c9788269d05a7f869113f40c1d2d183308692e8b53631ccabba62a19",
+      "manifest": "outage-long.json"
+    }
+  ]
+}

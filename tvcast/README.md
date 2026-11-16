@@ -26,6 +26,13 @@ cd /workspace/tvcast
 依赖：Python 3.11 标准库 + 随仓库自带的静态 ffmpeg（`tools/ffmpeg-static/`，
 ffmpeg 7.0.2）。无需 pip 安装、无需 root。
 
+### 图形入口（主入口）
+
+电视传输的图形入口只有控制页 **http://127.0.0.1:8080/**：页面上方的
+“启动广播”驱动实时链路，左栏“演示素材库”驱动已入库的传输演示资产。
+命令行（`run.sh` / `python3 -m tvcast.main`）仅用于把该页面跑起来，
+`demos/rebuild.py` 仅用于重建/核验演示资产，它们都不是操作电视传输的主路径。
+
 ---
 
 ## 2. 数据流与模块
@@ -51,8 +58,15 @@ ffmpeg(lavfi→MPEG-TS stdout)
 | `tvcast/sender.py` | ffmpeg 源→RTP→注入→UDP；切台只重启源，RTP 序号连续 |
 | `tvcast/receiver.py` | 重排/回绕/去抖/缺失标记/解码/落盘 |
 | `tvcast/core.py` | 编排内核：生命周期、场景、双端快照 |
-| `tvcast/server.py` | REST + SSE + `/video` fMP4 + 样本下载 |
-| `tvcast/web/index.html` | 单页流媒体控制界面 |
+| `tvcast/server.py` | REST + SSE + `/video` fMP4 + 样本/演示资产下载 |
+| `tvcast/demo/frames.py` | 唯一画面号渲染与回读（28 位条码 + CRC8 + 点阵数字） |
+| `tvcast/demo/audio.py` | 音频标记生成与包络回读 |
+| `tvcast/demo/content.py` | 真实 ffmpeg 编码演示节目，写 `content.json` |
+| `tvcast/demo/wire.py` | RTP wire 格式、内容索引、声明式故障编排 |
+| `tvcast/demo/build.py` | 内容→wire→清单的构建流水线 |
+| `tvcast/demo/replay.py` | 按清单时间戳驱动 wire、收集证据、13 项对照核验 |
+| `tvcast/demo/library.py` | 资产目录、重放会话、实况注入、节目切换 |
+| `tvcast/web/index.html` | 单页流媒体控制界面（含演示素材库） |
 
 ---
 
@@ -156,7 +170,93 @@ PORT=5012 ./experiments/send_unicast.sh
 
 ---
 
-## 9. HTTP 接口摘要
+## 9. 传输演示资产（入库、可重建、可核验）
+
+`demos/` 是与实时链路并列的一组**已入库传输演示资产**：控制页左栏
+“演示素材库”直接加载它们，无需先生成。它们不是截图或说明文档，而是真实
+可重放的 RTP 记录。
+
+### 9.1 内容：唯一画面号 + 音频标记
+
+`demos/programs/<节目>/content.ts` 是真实 MPEG-TS（ffmpeg 编码），画面里烧入了：
+
+- **机器可读画面号**：每帧底部 28 位条码 = 同步(4) + 节目号(4) + 帧号(12) + CRC8。
+  核验脚本用 ffmpeg 解出原始像素后逐帧回读条码，读到的节目号/帧号必须与清单一致。
+- **人眼可读画面号**：`节目号-六位帧号`，用内置 5×7 点阵绘出，不依赖系统字体。
+- **音频标记**：每秒 1 kHz 脉冲（60 ms），每 5 秒双脉冲（1.5 kHz）。核验时把捕获
+  的 TS 解码成 WAV，再用包络检测回读标记秒位。
+
+内容参数（分辨率、帧率、码率、ffmpeg 完整命令行、ffmpeg 版本、各文件 sha256、
+帧→PTS/首包映射、音频标记表）全部写进 `content.json`。生成是确定性的：
+同一 ffmpeg 版本下两次构建的 `content.ts` 字节一致。
+
+### 9.2 传输：真实 wire + 声明式故障计划
+
+`demos/assets/<资产>.wire` 是真实 RTP 数据报序列，每条记录携带
+`offset_us, packet_index, rtp_bytes`。`.json` 清单保存：
+
+- **事件时间**：每个故障事件的 `at_ms`（相对素材起点）。
+- **包身份**：`packet_index`、`seq16`、`ext_seq`、`rtp_ts`、`frame`（画面号）、
+  `program`；事件同时给出起止包/帧区间。
+- 故障计划（`fault_plan`）、构建期汇总（`summary`）、构建期推算的接收端
+  期望值（`expected`：缺失区间数、TS 连续性错误数）、以及接收端契约
+  （重排超时 250 ms、重排延迟 150 ms、重复延迟 90 ms）。
+
+| 资产 | 节目 | 故障 | 应观测 |
+|---|---|---|---|
+| `clean` | campus-news | 无 | 全有序，0 缺失，0 CC 错误 |
+| `loss-burst` | campus-news | 2.0s 连丢 35 包 | 1 个缺口区间、35 缺失、245 个 null TS、4 个 CC 错误 |
+| `dup-reorder` | campus-life | 3.0s 重复 10 包；4.2s 乱序 12 包 | 10 重复、12 乱序、0 缺失 |
+| `outage-long` | campus-tts | 2.5s 连丢 120 包（约 1.3s 断流） | 1 个缺口区间、120 缺失、840 个 null TS |
+
+`expected.cc_errors` 不是硬编码 0：构建期把“去丢包后的同一包序列”喂给接收端
+所用的同一个 `TSAnalyzer` 算出，因此丢包资产声明 4，接收端必须复现 4。
+这是一致性约束，不是放宽阈值。
+
+### 9.3 重放与证据
+
+点“载入并重放”后，`ReplayDriver` 按清单时间戳把 wire 逐包发到
+**专用 UDP 端口 5014**（不与实时链路的 5004 共用，避免 `SO_REUSEPORT`
+分流）。接收的是与实时链路**同一个** `Receiver`：重排、看门狗、null 填充、
+TS 分析、ffmpeg 解码全部走原路径。重放结束后：
+
+1. 接收端落盘 `demos/runs/reordered-*.ts` 与 `packets-*.csv`；
+2. 自动跑 13 项对照检查（声明 vs 实际），包括：数据报数、重复、乱序、
+   缺失、缺口区间、null 填充、CC 错误、ffmpeg 解码 rc、解码帧数、
+   条码可读率、节目号一致、帧号单调、音频标记存在；
+3. 页面“演示证据”表逐项列出实际值/声明值/结果，并链接可下载捕获文件。
+
+重放结束即关闭接收端，因此 `<video>` 预览会自然结束而不是永久挂起。
+
+### 9.4 界面内实况注入
+
+“注入乱序/注入重复”滑块在**已记录 wire 之上**追加真实数据报：
+
+- 乱序：把选中的包扣留 120 ms 再发（落在 250 ms 恢复窗口内），后继包真正超越；
+- 重复：同一包 80 ms 后重发。
+
+两者都会计入“实况注入”并抬高检查中对应的期望值（数据报数、重复数、乱序数），
+乱序/重复计数由一次真实发送产生，不是前端写死的数字。注入从 1.0s 之后开始，
+避免污染首包基线。
+
+### 9.5 重建
+
+```bash
+python3 demos/rebuild.py            # 缺失则重建
+python3 demos/rebuild.py --force    # 全部从源码重建
+python3 demos/rebuild.py --verify   # 重建后逐个重放并核验
+```
+
+`demos/rebuild.py` 会重画画面、重生成音频标记、重编码 MPEG-TS、重打包 RTP
+wire、重算故障计划与全部清单，并刷新 `demos/index.json`。资产已入库，正常
+使用无需运行本脚本；它存在是为了让资产“来源与参数可追溯、结果可复现”。
+
+测试：`python3 -m unittest tvcast.tests.test_demo -v`（条码/音频/故障计划/
+清单一致性，无需 ffmpeg 与网络）。
+
+---
+
+## 10. HTTP 接口摘要
 
 | 方法 | 路径 | 作用 |
 |---|---|---|
@@ -170,6 +270,14 @@ PORT=5012 ./experiments/send_unicast.sh
 | POST | `/api/burst`·`/api/block` | 突发丢包 / 网络阻塞 |
 | POST | `/api/scenario` | 运行编排场景 |
 | GET | `/api/captures`·`/captures/<f>` | 样本列表与下载 |
+| GET | `/api/demo/catalog` | 演示资产清单（含哈希、故障摘要） |
+| GET | `/api/demo/state` | 当前重放 + 接收端 + 证据结果 |
+| POST | `/api/demo/replay` | `{asset, speed, program?}` 载入并重放 |
+| POST | `/api/demo/stop` | 停止重放 |
+| POST | `/api/demo/inject` | 实况注入 `reorder_packets` / `duplicate_packets` |
+| POST | `/api/demo/program` | 切换节目（按资产携带的节目号校验） |
+| GET | `/api/demo/video` | 演示重放的实时 fMP4 |
+| GET | `/demos/<path>` | 下载资产 wire/清单/捕获 |
 
 控件失败时接口返回 409，页面顶部“失败反馈”直接展示内核报错，
 状态始终回读真实内核，不做前端乐观假设。
